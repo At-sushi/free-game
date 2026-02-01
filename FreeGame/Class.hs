@@ -18,6 +18,7 @@ import FreeGame.Data.Bitmap
 import Data.Color
 import Data.Coerce
 import Control.Bool
+import Control.Monad.State
 import qualified Data.Map as Map
 
 infixr 5 `translate`
@@ -39,6 +40,18 @@ class Functor p => Affine p where
     rotateR = rotateD . (* 180) . (/ pi)
     rotateD = rotateR . (/ 180) . (* pi)
 
+rotateRS :: (Affine p, MonadState (p a) m) => Double -> m () 
+rotateRS = modify . rotateR 
+
+rotateDS :: (Affine p, MonadState (p a) m) => Double -> m () 
+rotateDS = modify . rotateD 
+
+scaleS :: (Affine p, MonadState (p a) m) => Vec2 -> m () 
+scaleS = modify . scale 
+
+translateS :: (Affine p, MonadState (p a) m) => Vec2 -> m () 
+translateS = modify . translate 
+
 -- | The class of types that can be regarded as a kind of picture.
 class Affine p => Picture2D p where
     -- | Construct a 'Picture2D' from a 'Bitmap'.
@@ -53,6 +66,15 @@ class Affine p => Picture2D p where
     thickness :: Float -> p a -> p a
     color :: Color Float -> p a -> p a
     blendMode :: BlendMode -> p a -> p a
+
+thicknessS :: (Picture2D p, MonadState (p a) m) => Float -> m () 
+thicknessS = modify . thickness 
+
+colorS :: (Picture2D p, MonadState (p a) m) => Color Float -> m () 
+colorS = modify . color 
+
+blendModeS :: (Picture2D p, MonadState (p a) m) => BlendMode -> m () 
+blendModeS = modify . blendMode 
 
 class Affine p => Local p where
     getLocation :: p (Location a)
